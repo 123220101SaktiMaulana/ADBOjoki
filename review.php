@@ -30,11 +30,12 @@ if ($order_id > 0) {
         mysqli_stmt_close($stmt);
     }
 
-    // 2. If order is valid, check if it has already been reviewed.
+    // 2. If order is valid, check if THIS SPECIFIC ORDER has already been reviewed.
     if ($order_details) {
-        $sql_check_review = "SELECT ulasanID FROM ulasan WHERE jokiID = ? AND customerID = ?";
+        // PERBAIKAN: Cek berdasarkan orderID, bukan kombinasi jokiID+customerID
+        $sql_check_review = "SELECT ulasanID FROM ulasan WHERE orderID = ?";
         if ($stmt_check = mysqli_prepare($conn, $sql_check_review)) {
-            mysqli_stmt_bind_param($stmt_check, "ii", $order_details['jokiID'], $customerID);
+            mysqli_stmt_bind_param($stmt_check, "i", $order_id);
             mysqli_stmt_execute($stmt_check);
             mysqli_stmt_store_result($stmt_check);
             if (mysqli_stmt_num_rows($stmt_check) > 0) {
@@ -66,9 +67,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
     }
 
     if (empty($errors)) {
-        $sql_insert = "INSERT INTO ulasan (customerID, jokiID, rating, komentar) VALUES (?, ?, ?, ?)";
+        // PERBAIKAN: Tambahkan orderID ke dalam INSERT statement
+        $sql_insert = "INSERT INTO ulasan (customerID, jokiID, orderID, rating, komentar) VALUES (?, ?, ?, ?, ?)";
         if ($stmt = mysqli_prepare($conn, $sql_insert)) {
-            mysqli_stmt_bind_param($stmt, "iiis", $customerID, $jokiID, $rating, $komentar);
+            mysqli_stmt_bind_param($stmt, "iiiis", $customerID, $jokiID, $order_id_from_form, $rating, $komentar);
             if (mysqli_stmt_execute($stmt)) {
                 $success_msg = "Terima kasih atas ulasan Anda!";
                 header("refresh:3;url=customer_dashboard.php");

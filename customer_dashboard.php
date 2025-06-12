@@ -100,12 +100,13 @@ if ($stmt = mysqli_prepare($conn, $sql)) {
 // Fetch order history
 $orders = [];
 $sql_orders = "SELECT o.orderID, o.pembayaranID, a.usernameGame, o.start_rank, o.target_rank, o.total_biaya, o.status_order, p.status as status_pembayaran, 
-    (SELECT u.ulasanID FROM ulasan u WHERE u.jokiID = o.jokiID AND u.customerID = o.customerID LIMIT 1) as review_exists 
+    (SELECT u.ulasanID FROM ulasan u WHERE u.orderID = o.orderID LIMIT 1) as review_exists 
     FROM orderjoki o 
     JOIN akun_game a ON o.akunID = a.akunID 
     JOIN pembayaran p ON o.pembayaranID = p.pembayaranID 
     WHERE o.customerID = ? 
     ORDER BY o.orderID DESC";
+
 if($stmt = mysqli_prepare($conn, $sql_orders)){
     mysqli_stmt_bind_param($stmt, "i", $customerID);
     mysqli_stmt_execute($stmt);
